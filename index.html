@@ -1,0 +1,820 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ЗНР ПРОТИВ СНР map</title>
+    <!-- Leaflet CSS -->
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" integrity="sha256-p4NxAoJBhIIN+hmNHrzRCf9tD/miZyoHS5obTRR9BMY=" crossorigin=""/>
+    <!-- Leaflet Draw CSS -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/leaflet.draw/1.0.4/leaflet.draw.css"/>
+    <!-- Tailwind CSS CDN -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        #map {
+            height: 100vh;
+            width: 100%;
+        }
+        .leaflet-tile-container img.leaflet-tile-loaded {
+            border: none;
+        }
+        .leaflet-draw-toolbar .leaflet-draw-actions {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+        .leaflet-draw-toolbar .leaflet-draw-actions-bottom {
+            margin-top: 5px;
+        }
+        .color-picker {
+            width: 16px;
+            height: 16px;
+            margin: 4px auto 0;
+            border-radius: 2px;
+            cursor: pointer;
+            background-color: #ff0000;
+            position: relative;
+            box-sizing: border-box;
+            z-index: 999;
+        }
+        .color-picker input[type="color"] {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            opacity: 0;
+            cursor: pointer;
+            padding: 0;
+            margin: 0;
+        }
+        .opacity-control {
+            position: absolute;
+            top: 60px; /* Опускаем ниже, чтобы не перекрывать кнопку "Выйти" */
+            right: 10px;
+            background: white;
+            padding: 5px;
+            border-radius: 3px;
+            box-shadow: 0 1px 5px rgba(0,0,0,0.65);
+            z-index: 1000;
+        }
+        .opacity-slider {
+            width: 100px;
+            display: block;
+        }
+        .opacity-label {
+            font-size: 12px;
+            text-align: center;
+            margin-bottom: 5px;
+        }
+        .selected-layer {
+            weight: 5 !important;
+        }
+        .leaflet-draw-toolbar.marker-type-control {
+            background: transparent;
+            border: none;
+            box-shadow: none;
+        }
+        .marker-type-button {
+            width: 30px;
+            height: 30px;
+            font-size: 20px;
+            line-height: 30px;
+            text-align: center;
+            border: none;
+            cursor: pointer;
+            background-color: #fff;
+            margin: 1px 0;
+            box-shadow: 0 1px 5px rgba(0,0,0,0.65);
+            border-radius: 4px;
+        }
+        .marker-type-button.active {
+            background-color: #f4f4f4;
+        }
+        .leaflet-marker-icon.emoji-marker {
+            background: none !important;
+            border: none !important;
+            font-size: 24px !important;
+            line-height: 24px !important;
+            text-align: center;
+            text-shadow: 0 0 2px rgba(255, 255, 255, 0.8);
+        }
+        .settings-popup .leaflet-popup-content {
+            width: 200px;
+            padding: 10px;
+        }
+        .settings-popup .leaflet-popup-content-wrapper {
+            border-radius: 5px;
+        }
+        .settings-popup label {
+            display: block;
+            margin-bottom: 5px;
+            font-size: 14px;
+        }
+        .settings-popup input[type="color"] {
+            width: 100%;
+            height: 30px;
+            margin-bottom: 10px;
+        }
+        .settings-popup input[type="range"] {
+            width: 100%;
+            margin-bottom: 10px;
+        }
+        .settings-popup button {
+            width: 100%;
+            padding: 8px;
+            background-color: #4CAF50;
+            color: white;
+            border: none;
+            border-radius: 3px;
+            cursor: pointer;
+        }
+        .settings-popup button:hover {
+            background-color: #45a049;
+        }
+        .login-modal {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0,0,0,0.7);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            z-index: 2000;
+            animation: fadeIn 0.3s ease-in-out;
+        }
+        @keyframes fadeIn {
+            from { opacity: 0; }
+            to { opacity: 1; }
+        }
+        .login-form {
+            background: white;
+            padding: 2rem;
+            border-radius: 1rem;
+            width: 100%;
+            max-width: 400px;
+            box-shadow: 0 10px 15px rgba(0,0,0,0.2);
+            animation: slideIn 0.3s ease-in-out;
+        }
+        @keyframes slideIn {
+            from { transform: translateY(-20px); opacity: 0; }
+            to { transform: translateY(0); opacity: 1; }
+        }
+        .login-form input {
+            width: 100%;
+            padding: 0.75rem;
+            margin: 0.5rem 0;
+            border: 1px solid #e2e8f0;
+            border-radius: 0.5rem;
+            outline: none;
+            transition: border-color 0.2s;
+        }
+        .login-form input:focus {
+            border-color: #4CAF50;
+        }
+        .login-form button {
+            width: 100%;
+            padding: 0.75rem;
+            margin-top: 1rem;
+            background: #4CAF50;
+            color: white;
+            border: none;
+            border-radius: 0.5rem;
+            cursor: pointer;
+            transition: background 0.2s;
+        }
+        .login-form button:hover {
+            background: #45a049;
+        }
+        .login-form .toggle-link {
+            color: #4CAF50;
+            cursor: pointer;
+            text-decoration: underline;
+        }
+        .logout-btn {
+            position: absolute;
+            top: 10px;
+            right: 10px;
+            background: #f44336;
+            color: white;
+            padding: 0.5rem 1rem;
+            border-radius: 0.5rem;
+            cursor: pointer;
+            z-index: 1001;
+        }
+        .role-indicator {
+            position: absolute;
+            bottom: 10px;
+            left: 10px;
+            background: #4CAF50;
+            color: white;
+            padding: 0.5rem 1rem;
+            border-radius: 0.5rem;
+            z-index: 1001;
+            font-size: 14px;
+        }
+    </style>
+</head>
+<body>
+    <div id="map"></div>
+
+    <!-- Модальная форма входа/регистрации -->
+    <div id="loginModal" class="login-modal hidden">
+        <div class="login-form">
+            <h2 id="formTitle" class="text-2xl font-bold mb-4 text-gray-800">Вход</h2>
+            <input type="text" id="username" placeholder="Имя пользователя" class="text-gray-700">
+            <input type="password" id="password" placeholder="Пароль" class="text-gray-700">
+            <button id="authButton" class="mt-4">Войти</button>
+            <p class="mt-4 text-gray-600">
+                <span id="toggleText">Нет аккаунта? </span>
+                <span id="toggleLink" class="toggle-link">Зарегистрироваться</span>
+            </p>
+        </div>
+    </div>
+
+    <!-- Leaflet JS -->
+    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js" integrity="sha256-20nQCchB9co0qIjJZRGuk2/Z9VM+kNiyxNV1lvTlZBo=" crossorigin=""></script>
+    <!-- Leaflet Draw JS -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/leaflet.draw/1.0.4/leaflet.draw.js"></script>
+
+    <script>
+        // Инициализация пользователей в localStorage
+        if (!localStorage.getItem('users')) {
+            localStorage.setItem('users', JSON.stringify({}));
+        }
+
+        // Функции для работы с пользователями
+        function registerUser(username, password) {
+            const users = JSON.parse(localStorage.getItem('users'));
+            if (users[username]) {
+                alert('Пользователь уже существует!');
+                return false;
+            }
+            const role = username.toLowerCase() === 'admin' ? 'admin' : 'user';
+            users[username] = { password, role };
+            localStorage.setItem('users', JSON.stringify(users));
+            console.log(`Зарегистрирован пользователь: ${username}, роль: ${role}`);
+            return true;
+        }
+
+        function loginUser(username, password) {
+            const users = JSON.parse(localStorage.getItem('users'));
+            if (users[username] && users[username].password === password) {
+                const role = username.toLowerCase() === 'admin' ? 'admin' : 'user';
+                localStorage.setItem('currentUser', username);
+                localStorage.setItem('userRole', role);
+                console.log(`Вход выполнен: ${username}, роль: ${role}`);
+                return true;
+            }
+            alert('Неверный логин или пароль!');
+            console.log(`Ошибка входа: ${username}`);
+            return false;
+        }
+
+        function logout() {
+            localStorage.removeItem('currentUser');
+            localStorage.removeItem('userRole');
+            location.reload();
+        }
+
+        function isAdmin() {
+            const role = localStorage.getItem('userRole');
+            console.log(`Проверка роли: ${role}`);
+            return role === 'admin';
+        }
+
+        // Управление модальной формой
+        const loginModal = document.getElementById('loginModal');
+        const formTitle = document.getElementById('formTitle');
+        const authButton = document.getElementById('authButton');
+        const toggleLink = document.getElementById('toggleLink');
+        const toggleText = document.getElementById('toggleText');
+        let isLoginMode = true;
+
+        function toggleFormMode() {
+            isLoginMode = !isLoginMode;
+            formTitle.textContent = isLoginMode ? 'Вход' : 'Регистрация';
+            authButton.textContent = isLoginMode ? 'Войти' : 'Зарегистрироваться';
+            toggleText.textContent = isLoginMode ? 'Нет аккаунта? ' : 'Уже есть аккаунт? ';
+            toggleLink.textContent = isLoginMode ? 'Зарегистрироваться' : 'Войти';
+        }
+
+        toggleLink.addEventListener('click', toggleFormMode);
+
+        authButton.addEventListener('click', () => {
+            const username = document.getElementById('username').value.trim();
+            const password = document.getElementById('password').value.trim();
+            if (!username || !password) {
+                alert('Введите имя пользователя и пароль!');
+                return;
+            }
+            if (isLoginMode) {
+                if (loginUser(username, password)) {
+                    loginModal.classList.add('hidden');
+                    initMap();
+                }
+            } else {
+                if (registerUser(username, password)) {
+                    if (loginUser(username, password)) {
+                        loginModal.classList.add('hidden');
+                        initMap();
+                    }
+                }
+            }
+        });
+
+        // Инициализация карты
+        function initMap() {
+            const role = localStorage.getItem('userRole') || 'user';
+            const username = localStorage.getItem('currentUser') || 'Гость';
+            console.log(`Инициализация карты для: ${username}, роль: ${role}`);
+
+            // Индикатор роли в левом нижнем углу
+            const roleIndicator = document.createElement('div');
+            roleIndicator.className = 'role-indicator';
+            roleIndicator.innerHTML = `<strong>${username}</strong> (${role === 'admin' ? 'Администратор' : 'Пользователь'})`;
+            document.body.appendChild(roleIndicator);
+
+            // Кнопка выхода
+            const logoutBtn = document.createElement('button');
+            logoutBtn.className = 'logout-btn';
+            logoutBtn.textContent = 'Выйти';
+            logoutBtn.onclick = logout;
+            document.body.appendChild(logoutBtn);
+
+            // Инициализация карты
+            var southWest = L.latLng(44.0, 22.0);
+            var northEast = L.latLng(53.0, 40.5);
+            var bounds = L.latLngBounds(southWest, northEast);
+
+            var map = L.map('map', {
+                center: [48.3794, 31.1656],
+                zoom: 6,
+                minZoom: 5,
+                maxZoom: 18,
+                maxBounds: bounds,
+                maxBoundsViscosity: 1.0,
+                zoomAnimation: true,
+                zoomSnap: 1,
+                preferCanvas: true,
+                trackResize: true,
+                noWrap: true
+            });
+
+            map.fitBounds(bounds);
+
+            var tileLayer = L.tileLayer('https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}{r}.png', {
+                attribution: '&copy; <a href="https://carto.com/attributions">CartoDB</a> &copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors',
+                subdomains: 'abcd',
+                maxZoom: 20,
+                minZoom: 0,
+                updateWhenIdle: true,
+                keepBuffer: 3,
+                detectRetina: true,
+                errorTileUrl: 'data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mP8/5+hHgAHggJ/PchI7wAAAABJRU5ErkJggg==',
+                noWrap: true
+            }).addTo(map);
+
+            map.on('tileloadstart', function(e) { console.log('Загрузка тайла:', e.coords); });
+            map.on('tileload', function(e) { console.log('Тайл загружен:', e.coords); });
+            map.on('tileerror', function(e) { console.error('Ошибка тайла:', e.coords, e.tile); });
+
+            var drawnItems = new L.FeatureGroup();
+            map.addLayer(drawnItems);
+
+            var currentColor = '#ff0000';
+            var currentOpacity = 0.5;
+            var currentMarkerType = 'rocket';
+
+            const markerIcons = {
+                rocket: L.divIcon({
+                    html: '🚀',
+                    className: 'emoji-marker',
+                    iconSize: [24, 24],
+                    iconAnchor: [12, 24],
+                    popupAnchor: [0, -24]
+                }),
+                airfield: L.divIcon({
+                    html: '✈️',
+                    className: 'emoji-marker',
+                    iconSize: [24, 24],
+                    iconAnchor: [12, 24],
+                    popupAnchor: [0, -24]
+                }),
+                base: L.divIcon({
+                    html: '⚔️',
+                    className: 'emoji-marker',
+                    iconSize: [24, 24],
+                    iconAnchor: [12, 24],
+                    popupAnchor: [0, -24]
+                })
+            };
+
+            // Инструменты рисования только для админа
+            if (isAdmin()) {
+                var drawControl = new L.Control.Draw({
+                    position: 'topleft',
+                    draw: {
+                        polyline: {
+                            shapeOptions: {
+                                color: currentColor,
+                                weight: 3
+                            }
+                        },
+                        polygon: {
+                            shapeOptions: {
+                                color: currentColor,
+                                fillColor: currentColor,
+                                fillOpacity: currentOpacity
+                            }
+                        },
+                        rectangle: false,
+                        circle: false,
+                        marker: false,
+                        circlemarker: false
+                    },
+                    edit: {
+                        featureGroup: drawnItems
+                    }
+                });
+                map.addControl(drawControl);
+
+                var MarkerTypeControl = L.Control.extend({
+                    options: {
+                        position: 'topleft'
+                    },
+                    onAdd: function(map) {
+                        var container = L.DomUtil.create('div', 'leaflet-draw-toolbar marker-type-control leaflet-bar');
+                        var types = [
+                            { name: 'Ракета', type: 'rocket', emoji: '🚀' },
+                            { name: 'Аэродром', type: 'airfield', emoji: '✈️' },
+                            { name: 'Военная база', type: 'base', emoji: '⚔️' }
+                        ];
+
+                        types.forEach(function(typeObj) {
+                            var button = L.DomUtil.create('a', 'marker-type-button', container);
+                            button.title = typeObj.name;
+                            button.innerHTML = typeObj.emoji;
+                            if (typeObj.type === currentMarkerType) {
+                                button.classList.add('active');
+                            }
+                            L.DomEvent.on(button, 'click', function(e) {
+                                L.DomEvent.stopPropagation(e);
+                                container.querySelectorAll('.marker-type-button').forEach(btn => btn.classList.remove('active'));
+                                button.classList.add('active');
+                                currentMarkerType = typeObj.type;
+                                new L.Draw.Marker(map, {
+                                    icon: markerIcons[typeObj.type]
+                                }).enable();
+                            });
+                        });
+
+                        return container;
+                    }
+                });
+
+                map.addControl(new MarkerTypeControl());
+
+                function addColorPicker() {
+                    var actionsContainer = document.querySelector('.leaflet-draw-actions');
+                    if (!actionsContainer || document.querySelector('.color-picker')) return;
+
+                    var pickerContainer = document.createElement('div');
+                    pickerContainer.className = 'color-picker';
+                    var colorInput = document.createElement('input');
+                    colorInput.type = 'color';
+                    colorInput.value = currentColor;
+                    colorInput.addEventListener('change', function(e) {
+                        currentColor = e.target.value;
+                        pickerContainer.style.backgroundColor = e.target.value;
+                        drawControl.setDrawingOptions({
+                            polyline: {
+                                shapeOptions: {
+                                    color: currentColor,
+                                    weight: 3
+                                }
+                            },
+                            polygon: {
+                                shapeOptions: {
+                                    color: currentColor,
+                                    fillColor: currentColor,
+                                    fillOpacity: currentOpacity
+                                }
+                            }
+                        });
+                    });
+                    pickerContainer.appendChild(colorInput);
+                    actionsContainer.parentNode.insertBefore(pickerContainer, actionsContainer.nextSibling);
+                }
+
+                function addOpacityControl() {
+                    if (document.querySelector('.opacity-control')) return;
+
+                    var opacityControl = document.createElement('div');
+                    opacityControl.className = 'opacity-control';
+                    var label = document.createElement('div');
+                    label.className = 'opacity-label';
+                    label.textContent = 'Opacity';
+                    var opacityInput = document.createElement('input');
+                    opacityInput.type = 'range';
+                    opacityInput.className = 'opacity-slider';
+                    opacityInput.min = '0';
+                    opacityInput.max = '1';
+                    opacityInput.step = '0.1';
+                    opacityInput.value = currentOpacity;
+                    opacityInput.addEventListener('input', function(e) {
+                        currentOpacity = parseFloat(e.target.value);
+                        drawControl.setDrawingOptions({
+                            polygon: {
+                                shapeOptions: {
+                                    color: currentColor,
+                                    fillColor: currentColor,
+                                    fillOpacity: currentOpacity
+                                }
+                            }
+                        });
+                    });
+                    opacityControl.appendChild(label);
+                    opacityControl.appendChild(opacityInput);
+                    document.getElementById('map').parentNode.appendChild(opacityControl);
+                }
+
+                setTimeout(function() {
+                    addColorPicker();
+                    addOpacityControl();
+                }, 100);
+                map.on('draw:drawstart', function() {
+                    setTimeout(addColorPicker, 100);
+                });
+            }
+
+            const MIN_ZOOM_FOR_MARKERS = 9;
+
+            function updateMarkerVisibility() {
+                const currentZoom = map.getZoom();
+                drawnItems.eachLayer(function(layer) {
+                    if (layer instanceof L.Marker) {
+                        layer.setOpacity(currentZoom >= MIN_ZOOM_FOR_MARKERS ? 1 : 0);
+                    }
+                });
+            }
+
+            map.on('zoomend', updateMarkerVisibility);
+
+            function saveLayers() {
+                var geoJson = drawnItems.toGeoJSON();
+                localStorage.setItem('drawnLayers', JSON.stringify(geoJson));
+            }
+
+            function loadLayers() {
+                var savedLayers = localStorage.getItem('drawnLayers');
+                if (savedLayers) {
+                    var geoJson = JSON.parse(savedLayers);
+                    L.geoJSON(geoJson, {
+                        style: function(feature) {
+                            return {
+                                color: feature.properties.color || currentColor,
+                                fillColor: feature.properties.fillColor || currentColor,
+                                fillOpacity: feature.properties.fillOpacity !== undefined ? feature.properties.fillOpacity : currentOpacity,
+                                weight: feature.properties.weight || 3
+                            };
+                        },
+                        pointToLayer: function(feature, latlng) {
+                            if (feature.geometry.type === 'Point') {
+                                var markerType = feature.properties.markerType || 'rocket';
+                                var marker = L.marker(latlng, {
+                                    icon: markerIcons[markerType]
+                                });
+                                if (markerType === 'rocket') {
+                                    marker.bindPopup('Загроза Оріщанки');
+                                } else if (markerType === 'airfield') {
+                                    marker.bindPopup('Аэродром');
+                                } else if (markerType === 'base') {
+                                    marker.bindPopup('Военная база');
+                                }
+                                return marker;
+                            }
+                        },
+                        onEachFeature: function(feature, layer) {
+                            layer.feature = layer.feature || { type: 'Feature', properties: {} };
+                            layer.feature.properties = {
+                                color: feature.properties.color || currentColor,
+                                fillColor: feature.properties.fillColor || currentColor,
+                                fillOpacity: feature.properties.fillOpacity !== undefined ? feature.properties.fillOpacity : currentOpacity,
+                                weight: feature.properties.weight || 3,
+                                markerType: feature.properties.markerType || 'rocket'
+                            };
+                            if (layer instanceof L.Polygon) {
+                                layer.setStyle({
+                                    color: layer.feature.properties.color,
+                                    fillColor: layer.feature.properties.fillColor,
+                                    fillOpacity: layer.feature.properties.fillOpacity
+                                });
+                            } else if (layer instanceof L.Polyline) {
+                                layer.setStyle({
+                                    color: layer.feature.properties.color,
+                                    weight: layer.feature.properties.weight
+                                });
+                            } else if (layer instanceof L.Marker) {
+                                layer.setIcon(markerIcons[layer.feature.properties.markerType]);
+                                if (layer.feature.properties.markerType === 'rocket') {
+                                    layer.bindPopup('Загроза Оріщанки');
+                                } else if (layer.feature.properties.markerType === 'airfield') {
+                                    layer.bindPopup('Аэродром');
+                                } else if (layer.feature.properties.markerType === 'base') {
+                                    layer.bindPopup('Военная база');
+                                }
+                            }
+                            drawnItems.addLayer(layer);
+                        }
+                    });
+                    updateMarkerVisibility();
+                }
+            }
+
+            var selectedLayer = null;
+
+            if (isAdmin()) {
+                map.on(L.Draw.Event.CREATED, function (event) {
+                    var layer = event.layer;
+                    layer.feature = layer.feature || { type: 'Feature', properties: {} };
+                    if (layer instanceof L.Polygon) {
+                        layer.setStyle({
+                            color: currentColor,
+                            fillColor: currentColor,
+                            fillOpacity: currentOpacity
+                        });
+                        layer.feature.properties = {
+                            color: currentColor,
+                            fillColor: currentColor,
+                            fillOpacity: currentOpacity,
+                            weight: 3
+                        };
+                    } else if (layer instanceof L.Polyline) {
+                        layer.setStyle({
+                            color: currentColor,
+                            weight: 3
+                        });
+                        layer.feature.properties = {
+                            color: currentColor,
+                            weight: 3
+                        };
+                    } else if (layer instanceof L.Marker) {
+                        layer.feature.properties = {
+                            markerType: currentMarkerType
+                        };
+                        if (currentMarkerType === 'rocket') {
+                            layer.bindPopup('Загроза Оріщанки');
+                        } else if (currentMarkerType === 'airfield') {
+                            layer.bindPopup('Аэродром');
+                        } else if (currentMarkerType === 'base') {
+                            layer.bindPopup('Военная база');
+                        }
+                        layer.setIcon(markerIcons[currentMarkerType]);
+                    }
+                    drawnItems.addLayer(layer);
+                    updateMarkerVisibility();
+                    saveLayers();
+                });
+
+                map.on(L.Draw.Event.DELETED, function () {
+                    saveLayers();
+                });
+
+                function createSettingsPopup(layer) {
+                    var popupContent = document.createElement('div');
+                    popupContent.className = 'settings-popup';
+
+                    var colorLabel = document.createElement('label');
+                    colorLabel.textContent = 'Color';
+                    var colorInput = document.createElement('input');
+                    colorInput.type = 'color';
+                    colorInput.value = layer.options.fillColor || currentColor;
+
+                    var opacityLabel = document.createElement('label');
+                    opacityLabel.textContent = 'Opacity';
+                    var opacityInput = document.createElement('input');
+                    opacityInput.type = 'range';
+                    opacityInput.min = '0';
+                    opacityInput.max = '1';
+                    opacityInput.step = '0.1';
+                    opacityInput.value = layer.options.fillOpacity || currentOpacity;
+
+                    var applyButton = document.createElement('button');
+                    applyButton.textContent = 'Apply';
+                    applyButton.addEventListener('click', function() {
+                        layer.setStyle({
+                            color: colorInput.value,
+                            fillColor: colorInput.value,
+                            fillOpacity: parseFloat(opacityInput.value)
+                        });
+                        layer.feature.properties = {
+                            color: colorInput.value,
+                            fillColor: colorInput.value,
+                            fillOpacity: parseFloat(opacityInput.value),
+                            weight: 3
+                        };
+                        saveLayers();
+                        map.closePopup();
+                    });
+
+                    popupContent.appendChild(colorLabel);
+                    popupContent.appendChild(colorInput);
+                    popupContent.appendChild(opacityLabel);
+                    popupContent.appendChild(opacityInput);
+                    popupContent.appendChild(applyButton);
+
+                    var latlng = layer.getBounds().getCenter();
+                    layer.bindPopup(popupContent, { className: 'settings-popup' }).openPopup(latlng);
+                }
+
+                drawnItems.on('click', function (e) {
+                    if (selectedLayer) {
+                        if (selectedLayer instanceof L.Polygon || selectedLayer instanceof L.Polyline) {
+                            selectedLayer.setStyle({ weight: 3 });
+                        }
+                    }
+                    selectedLayer = e.layer;
+                    if (selectedLayer instanceof L.Polygon) {
+                        selectedLayer.setStyle({ weight: 5 });
+                        createSettingsPopup(selectedLayer);
+                    } else if (selectedLayer instanceof L.Polyline) {
+                        selectedLayer.setStyle({ weight: 5 });
+                        var layerColor = selectedLayer.options.color || selectedLayer.options.fillColor;
+                        currentColor = layerColor;
+                        var colorInput = document.querySelector('.color-picker input[type="color"]');
+                        if (colorInput) {
+                            colorInput.value = layerColor;
+                            colorInput.parentNode.style.backgroundColor = layerColor;
+                        }
+                        drawControl.setDrawingOptions({
+                            polyline: {
+                                shapeOptions: {
+                                    color: currentColor,
+                                    weight: 3
+                                }
+                            },
+                            polygon: {
+                                shapeOptions: {
+                                    color: currentColor,
+                                    fillColor: currentColor,
+                                    fillOpacity: currentOpacity
+                                }
+                            }
+                        });
+                    }
+                });
+
+                map.on('click', function () {
+                    if (selectedLayer && (selectedLayer instanceof L.Polygon || selectedLayer instanceof L.Polyline)) {
+                        selectedLayer.setStyle({ weight: 3 });
+                        selectedLayer = null;
+                    }
+                });
+
+                map.on(L.Draw.Event.EDITED, function (event) {
+                    var layers = event.layers;
+                    layers.eachLayer(function(layer) {
+                        if (layer instanceof L.Polygon) {
+                            layer.setStyle({
+                                color: currentColor,
+                                fillColor: currentColor,
+                                fillOpacity: currentOpacity
+                            });
+                            layer.feature.properties = {
+                                color: currentColor,
+                                fillColor: currentColor,
+                                fillOpacity: currentOpacity,
+                                weight: 3
+                            };
+                        } else if (layer instanceof L.Polyline) {
+                            layer.setStyle({
+                                color: currentColor,
+                                weight: 3
+                            });
+                            layer.feature.properties = {
+                                color: currentColor,
+                                weight: 3
+                            };
+                        }
+                        saveLayers();
+                    });
+                });
+            }
+
+            loadLayers();
+        }
+
+        // Проверка авторизации при загрузке
+        document.addEventListener('DOMContentLoaded', function() {
+            if (localStorage.getItem('currentUser') && localStorage.getItem('userRole')) {
+                initMap();
+            } else {
+                loginModal.classList.remove('hidden');
+            }
+        });
+    </script>
+</body>
+</html>
