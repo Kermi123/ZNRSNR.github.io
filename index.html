@@ -50,7 +50,7 @@
         }
         .opacity-control {
             position: absolute;
-            top: 60px; /* Опускаем ниже, чтобы не перекрывать кнопку "Выйти" */
+            top: 60px;
             right: 10px;
             background: white;
             padding: 5px;
@@ -240,9 +240,15 @@
     <script src="https://cdnjs.cloudflare.com/ajax/libs/leaflet.draw/1.0.4/leaflet.draw.js"></script>
 
     <script>
-        // Инициализация пользователей в localStorage
+        // Инициализация пользователей и общего хранилища
         if (!localStorage.getItem('users')) {
             localStorage.setItem('users', JSON.stringify({}));
+        }
+        if (!sessionStorage.getItem('sharedDrawnLayers')) {
+            sessionStorage.setItem('sharedDrawnLayers', JSON.stringify({ type: 'FeatureCollection', features: [] }));
+        }
+        if (!sessionStorage.getItem('adminStatus')) {
+            sessionStorage.setItem('adminStatus', JSON.stringify({ isTaken: false, adminUsername: null }));
         }
 
         // Функции для работы с пользователями
@@ -252,9 +258,17 @@
                 alert('Пользователь уже существует!');
                 return false;
             }
-            const role = username.toLowerCase() === 'admin' ? 'admin' : 'user';
+            const adminStatus = JSON.parse(sessionStorage.getItem('adminStatus'));
+            const role = username.toLowerCase() === 'admin' && !adminStatus.isTaken ? 'admin' : 'user';
+            if (username.toLowerCase() === 'admin' && adminStatus.isTaken) {
+                alert('Роль администратора уже занята!');
+                return false;
+            }
             users[username] = { password, role };
             localStorage.setItem('users', JSON.stringify(users));
+            if (role === 'admin') {
+                sessionStorage.setItem('adminStatus', JSON.stringify({ isTaken: true, adminUsername: username }));
+            }
             console.log(`Зарегистрирован пользователь: ${username}, роль: ${role}`);
             return true;
         }
@@ -262,9 +276,17 @@
         function loginUser(username, password) {
             const users = JSON.parse(localStorage.getItem('users'));
             if (users[username] && users[username].password === password) {
-                const role = username.toLowerCase() === 'admin' ? 'admin' : 'user';
+                const adminStatus = JSON.parse(sessionStorage.getItem('adminStatus'));
+                const role = username.toLowerCase() === 'admin' && !adminStatus.isTaken ? 'admin' : 'user';
+                if (username.toLowerCase() === 'admin' && adminStatus.isTaken && adminStatus.adminUsername !== username) {
+                    alert('Роль администратора уже занята!');
+                    return false;
+                }
                 localStorage.setItem('currentUser', username);
                 localStorage.setItem('userRole', role);
+                if (role === 'admin') {
+                    sessionStorage.setItem('adminStatus', JSON.stringify({ isTaken: true, adminUsername: username }));
+                }
                 console.log(`Вход выполнен: ${username}, роль: ${role}`);
                 return true;
             }
@@ -274,6 +296,11 @@
         }
 
         function logout() {
+            const username = localStorage.getItem('currentUser');
+            const role = localStorage.getItem('userRole');
+            if (role === 'admin') {
+                sessionStorage.setItem('adminStatus', JSON.stringify({ isTaken: false, adminUsername: null }));
+            }
             localStorage.removeItem('currentUser');
             localStorage.removeItem('userRole');
             location.reload();
@@ -565,11 +592,11 @@
 
             function saveLayers() {
                 var geoJson = drawnItems.toGeoJSON();
-                localStorage.setItem('drawnLayers', JSON.stringify(geoJson));
+                sessionStorage.setItem('sharedDrawnLayers', JSON.stringify(geoJson));
             }
 
             function loadLayers() {
-                var savedLayers = localStorage.getItem('drawnLayers');
+                var savedLayers = sessionStorage.getItem('sharedDrawnLayers');
                 if (savedLayers) {
                     var geoJson = JSON.parse(savedLayers);
                     L.geoJSON(geoJson, {
@@ -810,6 +837,11 @@
         // Проверка авторизации при загрузке
         document.addEventListener('DOMContentLoaded', function() {
             if (localStorage.getItem('currentUser') && localStorage.getItem('userRole')) {
+                const adminStatus = JSON.parse(sessionStorage.getItem('adminStatus'));
+                if (localStorage.getItem('userRole') === 'admin' && adminStatus.isTaken && adminStatus.adminUsername !== localStorage.getItem('currentUser')) {
+                    alert('Роль администратора была занята другим пользователем. Вы вошли как обычный пользователь.');
+                    localStorage.setItem('userRole', 'user');
+                }
                 initMap();
             } else {
                 loginModal.classList.remove('hidden');
