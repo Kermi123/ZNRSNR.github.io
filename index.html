@@ -3,94 +3,10 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>ЗНР ПРОТИВ СНР map</title>
-    <!-- Leaflet CSS -->
+    <title>Карта ЗНР ПРОТИВ СНР</title>
     <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" integrity="sha256-p4NxAoJBhIIN+hmNHrzRCf9tD/miZyoHS5obTRR9BMY=" crossorigin=""/>
-    <!-- Leaflet Draw CSS -->
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/leaflet.draw/1.0.4/leaflet.draw.css"/>
-    <!-- Tailwind CSS CDN -->
-    <script src="https://cdn.tailwindcss.com"></script>
     <style>
-        #map {
-            height: 100vh;
-            width: 100%;
-        }
-        .leaflet-tile-container img.leaflet-tile-loaded {
-            border: none;
-        }
-        .leaflet-draw-toolbar .leaflet-draw-actions {
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-        }
-        .leaflet-draw-toolbar .leaflet-draw-actions-bottom {
-            margin-top: 5px;
-        }
-        .color-picker {
-            width: 16px;
-            height: 16px;
-            margin: 4px auto 0;
-            border-radius: 2px;
-            cursor: pointer;
-            background-color: #ff0000;
-            position: relative;
-            box-sizing: border-box;
-            z-index: 999;
-        }
-        .color-picker input[type="color"] {
-            position: absolute;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            opacity: 0;
-            cursor: pointer;
-            padding: 0;
-            margin: 0;
-        }
-        .opacity-control {
-            position: absolute;
-            top: 60px;
-            right: 10px;
-            background: white;
-            padding: 5px;
-            border-radius: 3px;
-            box-shadow: 0 1px 5px rgba(0,0,0,0.65);
-            z-index: 1000;
-        }
-        .opacity-slider {
-            width: 100px;
-            display: block;
-        }
-        .opacity-label {
-            font-size: 12px;
-            text-align: center;
-            margin-bottom: 5px;
-        }
-        .selected-layer {
-            weight: 5 !important;
-        }
-        .leaflet-draw-toolbar.marker-type-control {
-            background: transparent;
-            border: none;
-            box-shadow: none;
-        }
-        .marker-type-button {
-            width: 30px;
-            height: 30px;
-            font-size: 20px;
-            line-height: 30px;
-            text-align: center;
-            border: none;
-            cursor: pointer;
-            background-color: #fff;
-            margin: 1px 0;
-            box-shadow: 0 1px 5px rgba(0,0,0,0.65);
-            border-radius: 4px;
-        }
-        .marker-type-button.active {
-            background-color: #f4f4f4;
-        }
+        #map { height: 100vh; width: 100%; }
         .leaflet-marker-icon.emoji-marker {
             background: none !important;
             border: none !important;
@@ -99,754 +15,2164 @@
             text-align: center;
             text-shadow: 0 0 2px rgba(255, 255, 255, 0.8);
         }
-        .settings-popup .leaflet-popup-content {
-            width: 200px;
-            padding: 10px;
-        }
-        .settings-popup .leaflet-popup-content-wrapper {
-            border-radius: 5px;
-        }
-        .settings-popup label {
-            display: block;
-            margin-bottom: 5px;
-            font-size: 14px;
-        }
-        .settings-popup input[type="color"] {
-            width: 100%;
-            height: 30px;
-            margin-bottom: 10px;
-        }
-        .settings-popup input[type="range"] {
-            width: 100%;
-            margin-bottom: 10px;
-        }
-        .settings-popup button {
-            width: 100%;
-            padding: 8px;
-            background-color: #4CAF50;
-            color: white;
-            border: none;
-            border-radius: 3px;
-            cursor: pointer;
-        }
-        .settings-popup button:hover {
-            background-color: #45a049;
-        }
-        .login-modal {
-            position: fixed;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            background: rgba(0,0,0,0.7);
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            z-index: 2000;
-            animation: fadeIn 0.3s ease-in-out;
-        }
-        @keyframes fadeIn {
-            from { opacity: 0; }
-            to { opacity: 1; }
-        }
-        .login-form {
-            background: white;
-            padding: 2rem;
-            border-radius: 1rem;
-            width: 100%;
-            max-width: 400px;
-            box-shadow: 0 10px 15px rgba(0,0,0,0.2);
-            animation: slideIn 0.3s ease-in-out;
-        }
-        @keyframes slideIn {
-            from { transform: translateY(-20px); opacity: 0; }
-            to { transform: translateY(0); opacity: 1; }
-        }
-        .login-form input {
-            width: 100%;
-            padding: 0.75rem;
-            margin: 0.5rem 0;
-            border: 1px solid #e2e8f0;
-            border-radius: 0.5rem;
-            outline: none;
-            transition: border-color 0.2s;
-        }
-        .login-form input:focus {
-            border-color: #4CAF50;
-        }
-        .login-form button {
-            width: 100%;
-            padding: 0.75rem;
-            margin-top: 1rem;
-            background: #4CAF50;
-            color: white;
-            border: none;
-            border-radius: 0.5rem;
-            cursor: pointer;
-            transition: background 0.2s;
-        }
-        .login-form button:hover {
-            background: #45a049;
-        }
-        .login-form .toggle-link {
-            color: #4CAF50;
-            cursor: pointer;
-            text-decoration: underline;
-        }
-        .logout-btn {
-            position: absolute;
-            top: 10px;
-            right: 10px;
-            background: #f44336;
-            color: white;
-            padding: 0.5rem 1rem;
-            border-radius: 0.5rem;
-            cursor: pointer;
-            z-index: 1001;
-        }
-        .role-indicator {
-            position: absolute;
-            bottom: 10px;
-            left: 10px;
-            background: #4CAF50;
-            color: white;
-            padding: 0.5rem 1rem;
-            border-radius: 0.5rem;
-            z-index: 1001;
-            font-size: 14px;
-        }
     </style>
 </head>
 <body>
     <div id="map"></div>
-
-    <!-- Модальная форма входа/регистрации -->
-    <div id="loginModal" class="login-modal hidden">
-        <div class="login-form">
-            <h2 id="formTitle" class="text-2xl font-bold mb-4 text-gray-800">Вход</h2>
-            <input type="text" id="username" placeholder="Имя пользователя" class="text-gray-700">
-            <input type="password" id="password" placeholder="Пароль" class="text-gray-700">
-            <button id="authButton" class="mt-4">Войти</button>
-            <p class="mt-4 text-gray-600">
-                <span id="toggleText">Нет аккаунта? </span>
-                <span id="toggleLink" class="toggle-link">Зарегистрироваться</span>
-            </p>
-        </div>
-    </div>
-
-    <!-- Leaflet JS -->
+    
     <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js" integrity="sha256-20nQCchB9co0qIjJZRGuk2/Z9VM+kNiyxNV1lvTlZBo=" crossorigin=""></script>
-    <!-- Leaflet Draw JS -->
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/leaflet.draw/1.0.4/leaflet.draw.js"></script>
-
+    
     <script>
-        // Инициализация пользователей и общего хранилища
-        if (!localStorage.getItem('users')) {
-            localStorage.setItem('users', JSON.stringify({}));
-        }
-        if (!sessionStorage.getItem('sharedDrawnLayers')) {
-            sessionStorage.setItem('sharedDrawnLayers', JSON.stringify({ type: 'FeatureCollection', features: [] }));
-        }
-        if (!sessionStorage.getItem('adminStatus')) {
-            sessionStorage.setItem('adminStatus', JSON.stringify({ isTaken: false, adminUsername: null }));
-        }
-
-        // Функции для работы с пользователями
-        function registerUser(username, password) {
-            const users = JSON.parse(localStorage.getItem('users'));
-            if (users[username]) {
-                alert('Пользователь уже существует!');
-                return false;
-            }
-            const adminStatus = JSON.parse(sessionStorage.getItem('adminStatus'));
-            const role = username.toLowerCase() === 'admin' && !adminStatus.isTaken ? 'admin' : 'user';
-            if (username.toLowerCase() === 'admin' && adminStatus.isTaken) {
-                alert('Роль администратора уже занята!');
-                return false;
-            }
-            users[username] = { password, role };
-            localStorage.setItem('users', JSON.stringify(users));
-            if (role === 'admin') {
-                sessionStorage.setItem('adminStatus', JSON.stringify({ isTaken: true, adminUsername: username }));
-            }
-            console.log(`Зарегистрирован пользователь: ${username}, роль: ${role}`);
-            return true;
-        }
-
-        function loginUser(username, password) {
-            const users = JSON.parse(localStorage.getItem('users'));
-            if (users[username] && users[username].password === password) {
-                const adminStatus = JSON.parse(sessionStorage.getItem('adminStatus'));
-                const role = username.toLowerCase() === 'admin' && !adminStatus.isTaken ? 'admin' : 'user';
-                if (username.toLowerCase() === 'admin' && adminStatus.isTaken && adminStatus.adminUsername !== username) {
-                    alert('Роль администратора уже занята!');
-                    return false;
-                }
-                localStorage.setItem('currentUser', username);
-                localStorage.setItem('userRole', role);
-                if (role === 'admin') {
-                    sessionStorage.setItem('adminStatus', JSON.stringify({ isTaken: true, adminUsername: username }));
-                }
-                console.log(`Вход выполнен: ${username}, роль: ${role}`);
-                return true;
-            }
-            alert('Неверный логин или пароль!');
-            console.log(`Ошибка входа: ${username}`);
-            return false;
-        }
-
-        function logout() {
-            const username = localStorage.getItem('currentUser');
-            const role = localStorage.getItem('userRole');
-            if (role === 'admin') {
-                sessionStorage.setItem('adminStatus', JSON.stringify({ isTaken: false, adminUsername: null }));
-            }
-            localStorage.removeItem('currentUser');
-            localStorage.removeItem('userRole');
-            location.reload();
-        }
-
-        function isAdmin() {
-            const role = localStorage.getItem('userRole');
-            console.log(`Проверка роли: ${role}`);
-            return role === 'admin';
-        }
-
-        // Управление модальной формой
-        const loginModal = document.getElementById('loginModal');
-        const formTitle = document.getElementById('formTitle');
-        const authButton = document.getElementById('authButton');
-        const toggleLink = document.getElementById('toggleLink');
-        const toggleText = document.getElementById('toggleText');
-        let isLoginMode = true;
-
-        function toggleFormMode() {
-            isLoginMode = !isLoginMode;
-            formTitle.textContent = isLoginMode ? 'Вход' : 'Регистрация';
-            authButton.textContent = isLoginMode ? 'Войти' : 'Зарегистрироваться';
-            toggleText.textContent = isLoginMode ? 'Нет аккаунта? ' : 'Уже есть аккаунт? ';
-            toggleLink.textContent = isLoginMode ? 'Зарегистрироваться' : 'Войти';
-        }
-
-        toggleLink.addEventListener('click', toggleFormMode);
-
-        authButton.addEventListener('click', () => {
-            const username = document.getElementById('username').value.trim();
-            const password = document.getElementById('password').value.trim();
-            if (!username || !password) {
-                alert('Введите имя пользователя и пароль!');
-                return;
-            }
-            if (isLoginMode) {
-                if (loginUser(username, password)) {
-                    loginModal.classList.add('hidden');
-                    initMap();
-                }
-            } else {
-                if (registerUser(username, password)) {
-                    if (loginUser(username, password)) {
-                        loginModal.classList.add('hidden');
-                        initMap();
-                    }
-                }
-            }
-        });
-
+        // Данные карты
+        const mapData = {
+  "type": "FeatureCollection",
+  "features": [
+    {
+      "type": "Feature",
+      "properties": {
+        "color": "#1c2202",
+        "weight": 3
+      },
+      "geometry": {
+        "type": "LineString",
+        "coordinates": [
+          [
+            36.209736,
+            50.386523
+          ],
+          [
+            36.205444,
+            50.39484
+          ],
+          [
+            36.194458,
+            50.402062
+          ],
+          [
+            36.192913,
+            50.40436
+          ],
+          [
+            36.184502,
+            50.406548
+          ],
+          [
+            36.176262,
+            50.402062
+          ],
+          [
+            36.160297,
+            50.431705
+          ],
+          [
+            36.118412,
+            50.438375
+          ],
+          [
+            36.085968,
+            50.449416
+          ],
+          [
+            36.070004,
+            50.446902
+          ],
+          [
+            36.067772,
+            50.451165
+          ],
+          [
+            36.041508,
+            50.449525
+          ],
+          [
+            36.02829,
+            50.447448
+          ],
+          [
+            36.002026,
+            50.445371
+          ],
+          [
+            35.976105,
+            50.441108
+          ],
+          [
+            35.96735,
+            50.43586
+          ],
+          [
+            35.937653,
+            50.433345
+          ],
+          [
+            35.936279,
+            50.431486
+          ],
+          [
+            35.921001,
+            50.437172
+          ],
+          [
+            35.889416,
+            50.438921
+          ],
+          [
+            35.87225,
+            50.423175
+          ],
+          [
+            35.854912,
+            50.429846
+          ],
+          [
+            35.835171,
+            50.425362
+          ],
+          [
+            35.831394,
+            50.434329
+          ],
+          [
+            35.793114,
+            50.416613
+          ],
+          [
+            35.80616,
+            50.411143
+          ],
+          [
+            35.80616,
+            50.402828
+          ],
+          [
+            35.738869,
+            50.354661
+          ],
+          [
+            35.673981,
+            50.355757
+          ],
+          [
+            35.659561,
+            50.351814
+          ],
+          [
+            35.654755,
+            50.346556
+          ],
+          [
+            35.68119,
+            50.342612
+          ],
+          [
+            35.68222,
+            50.34787
+          ],
+          [
+            35.694237,
+            50.345241
+          ],
+          [
+            35.688057,
+            50.334943
+          ],
+          [
+            35.682564,
+            50.3356
+          ],
+          [
+            35.680504,
+            50.330998
+          ],
+          [
+            35.672607,
+            50.326395
+          ],
+          [
+            35.660248,
+            50.327053
+          ],
+          [
+            35.657158,
+            50.312804
+          ],
+          [
+            35.648575,
+            50.313243
+          ],
+          [
+            35.647202,
+            50.310831
+          ],
+          [
+            35.630379,
+            50.31675
+          ],
+          [
+            35.671234,
+            50.276176
+          ],
+          [
+            35.68222,
+            50.25423
+          ],
+          [
+            35.70488,
+            50.252035
+          ],
+          [
+            35.707626,
+            50.240179
+          ],
+          [
+            35.717239,
+            50.230516
+          ],
+          [
+            35.739899,
+            50.221291
+          ],
+          [
+            35.765305,
+            50.199759
+          ],
+          [
+            35.736465,
+            50.161725
+          ],
+          [
+            35.745392,
+            50.141926
+          ],
+          [
+            35.776634,
+            50.147646
+          ],
+          [
+            35.7938,
+            50.138405
+          ],
+          [
+            35.829163,
+            50.129603
+          ],
+          [
+            35.849762,
+            50.12344
+          ],
+          [
+            35.876884,
+            50.117496
+          ],
+          [
+            35.904007,
+            50.112212
+          ],
+          [
+            35.92186,
+            50.110011
+          ],
+          [
+            35.953445,
+            50.105607
+          ],
+          [
+            35.972328,
+            50.110231
+          ],
+          [
+            35.983315,
+            50.12344
+          ],
+          [
+            35.982971,
+            50.133124
+          ],
+          [
+            35.985031,
+            50.144126
+          ],
+          [
+            35.995674,
+            50.151386
+          ],
+          [
+            36.005287,
+            50.164584
+          ],
+          [
+            36.039276,
+            50.180856
+          ],
+          [
+            36.071205,
+            50.178327
+          ],
+          [
+            36.077557,
+            50.180196
+          ],
+          [
+            36.075153,
+            50.18811
+          ],
+          [
+            36.071892,
+            50.189869
+          ],
+          [
+            36.07172,
+            50.201957
+          ],
+          [
+            36.06142,
+            50.206791
+          ],
+          [
+            36.03756,
+            50.212724
+          ],
+          [
+            36.053352,
+            50.216019
+          ],
+          [
+            36.067429,
+            50.219754
+          ],
+          [
+            36.07687,
+            50.223488
+          ],
+          [
+            36.093006,
+            50.225355
+          ],
+          [
+            36.095581,
+            50.236226
+          ],
+          [
+            36.093006,
+            50.236116
+          ],
+          [
+            36.083736,
+            50.23985
+          ],
+          [
+            36.086826,
+            50.24479
+          ],
+          [
+            36.091976,
+            50.246876
+          ],
+          [
+            36.102104,
+            50.237544
+          ],
+          [
+            36.116352,
+            50.241057
+          ],
+          [
+            36.122017,
+            50.241057
+          ],
+          [
+            36.120644,
+            50.250059
+          ],
+          [
+            36.12751,
+            50.255876
+          ],
+          [
+            36.130772,
+            50.255547
+          ],
+          [
+            36.140556,
+            50.264326
+          ],
+          [
+            36.139698,
+            50.26685
+          ],
+          [
+            36.143646,
+            50.269045
+          ],
+          [
+            36.148109,
+            50.269374
+          ],
+          [
+            36.152229,
+            50.271239
+          ],
+          [
+            36.149139,
+            50.273104
+          ],
+          [
+            36.148453,
+            50.276286
+          ],
+          [
+            36.150856,
+            50.278151
+          ],
+          [
+            36.157551,
+            50.277054
+          ],
+          [
+            36.160126,
+            50.282813
+          ],
+          [
+            36.168623,
+            50.283307
+          ],
+          [
+            36.168623,
+            50.287255
+          ],
+          [
+            36.173687,
+            50.288133
+          ],
+          [
+            36.172915,
+            50.293068
+          ],
+          [
+            36.170683,
+            50.298003
+          ],
+          [
+            36.17034,
+            50.298606
+          ],
+          [
+            36.163387,
+            50.300306
+          ],
+          [
+            36.166391,
+            50.30217
+          ],
+          [
+            36.166649,
+            50.303814
+          ],
+          [
+            36.167164,
+            50.305733
+          ],
+          [
+            36.168709,
+            50.307104
+          ],
+          [
+            36.163816,
+            50.310118
+          ],
+          [
+            36.165447,
+            50.314723
+          ],
+          [
+            36.159525,
+            50.315599
+          ],
+          [
+            36.160469,
+            50.317024
+          ],
+          [
+            36.158838,
+            50.317627
+          ],
+          [
+            36.158409,
+            50.321738
+          ],
+          [
+            36.161757,
+            50.323656
+          ],
+          [
+            36.154203,
+            50.326834
+          ],
+          [
+            36.151757,
+            50.326135
+          ],
+          [
+            36.151135,
+            50.326423
+          ],
+          [
+            36.151865,
+            50.326601
+          ],
+          [
+            36.152122,
+            50.327368
+          ],
+          [
+            36.153688,
+            50.327437
+          ],
+          [
+            36.154847,
+            50.327478
+          ],
+          [
+            36.15562,
+            50.327395
+          ],
+          [
+            36.156714,
+            50.328094
+          ],
+          [
+            36.162229,
+            50.326834
+          ],
+          [
+            36.163666,
+            50.328875
+          ],
+          [
+            36.161778,
+            50.329217
+          ],
+          [
+            36.160297,
+            50.329573
+          ],
+          [
+            36.15931,
+            50.329601
+          ],
+          [
+            36.158152,
+            50.329409
+          ],
+          [
+            36.156993,
+            50.329601
+          ],
+          [
+            36.156135,
+            50.32956
+          ],
+          [
+            36.155469,
+            50.329765
+          ],
+          [
+            36.154332,
+            50.329697
+          ],
+          [
+            36.15401,
+            50.329888
+          ],
+          [
+            36.154268,
+            50.330286
+          ],
+          [
+            36.153452,
+            50.330245
+          ],
+          [
+            36.15165,
+            50.330217
+          ],
+          [
+            36.150684,
+            50.331025
+          ],
+          [
+            36.15386,
+            50.331409
+          ],
+          [
+            36.154461,
+            50.331642
+          ],
+          [
+            36.154547,
+            50.332012
+          ],
+          [
+            36.155105,
+            50.331902
+          ],
+          [
+            36.155126,
+            50.331669
+          ],
+          [
+            36.159396,
+            50.331738
+          ],
+          [
+            36.159697,
+            50.332176
+          ],
+          [
+            36.161349,
+            50.331655
+          ],
+          [
+            36.161327,
+            50.331286
+          ],
+          [
+            36.161993,
+            50.331176
+          ],
+          [
+            36.162164,
+            50.33134
+          ],
+          [
+            36.165082,
+            50.329971
+          ],
+          [
+            36.16549,
+            50.331108
+          ],
+          [
+            36.165748,
+            50.331299
+          ],
+          [
+            36.165705,
+            50.331546
+          ],
+          [
+            36.165447,
+            50.331655
+          ],
+          [
+            36.167657,
+            50.333422
+          ],
+          [
+            36.169116,
+            50.333929
+          ],
+          [
+            36.169288,
+            50.334313
+          ],
+          [
+            36.172829,
+            50.334203
+          ],
+          [
+            36.172721,
+            50.334641
+          ],
+          [
+            36.172185,
+            50.334833
+          ],
+          [
+            36.1724,
+            50.336449
+          ],
+          [
+            36.172593,
+            50.337107
+          ],
+          [
+            36.172013,
+            50.337668
+          ],
+          [
+            36.17182,
+            50.33923
+          ],
+          [
+            36.172056,
+            50.340695
+          ],
+          [
+            36.172314,
+            50.345351
+          ],
+          [
+            36.174202,
+            50.352361
+          ],
+          [
+            36.179523,
+            50.353676
+          ],
+          [
+            36.18021,
+            50.357728
+          ],
+          [
+            36.182785,
+            50.360137
+          ],
+          [
+            36.190681,
+            50.362218
+          ],
+          [
+            36.19051,
+            50.368569
+          ],
+          [
+            36.189995,
+            50.373277
+          ],
+          [
+            36.193428,
+            50.375576
+          ],
+          [
+            36.19875,
+            50.378642
+          ],
+          [
+            36.203384,
+            50.381816
+          ],
+          [
+            36.207955,
+            50.384094
+          ],
+          [
+            36.208245,
+            50.384915
+          ],
+          [
+            36.208405,
+            50.38538
+          ],
+          [
+            36.208642,
+            50.386324
+          ],
+          [
+            36.209199,
+            50.386571
+          ],
+          [
+            36.209725,
+            50.386345
+          ],
+          [
+            36.210991,
+            50.386215
+          ],
+          [
+            36.23085,
+            50.371471
+          ],
+          [
+            36.233597,
+            50.363915
+          ],
+          [
+            36.242437,
+            50.358166
+          ],
+          [
+            36.255484,
+            50.355483
+          ],
+          [
+            36.283722,
+            50.3356
+          ],
+          [
+            36.274452,
+            50.324752
+          ],
+          [
+            36.280117,
+            50.323546
+          ],
+          [
+            36.275997,
+            50.31675
+          ],
+          [
+            36.286125,
+            50.305569
+          ],
+          [
+            36.286297,
+            50.299209
+          ],
+          [
+            36.298656,
+            50.299319
+          ],
+          [
+            36.295567,
+            50.292191
+          ],
+          [
+            36.354961,
+            50.288242
+          ],
+          [
+            36.361313,
+            50.287036
+          ],
+          [
+            36.378307,
+            50.29252
+          ],
+          [
+            36.376076,
+            50.299209
+          ],
+          [
+            36.405258,
+            50.309954
+          ],
+          [
+            36.425171,
+            50.328806
+          ],
+          [
+            36.432896,
+            50.331217
+          ],
+          [
+            36.440449,
+            50.311489
+          ],
+          [
+            36.474094,
+            50.313352
+          ],
+          [
+            36.487999,
+            50.311818
+          ],
+          [
+            36.495209,
+            50.303705
+          ],
+          [
+            36.51701,
+            50.294165
+          ],
+          [
+            36.526451,
+            50.293616
+          ],
+          [
+            36.523705,
+            50.287365
+          ],
+          [
+            36.554089,
+            50.281442
+          ],
+          [
+            36.55838,
+            50.256864
+          ],
+          [
+            36.557693,
+            50.232713
+          ],
+          [
+            36.549797,
+            50.180196
+          ],
+          [
+            36.55426,
+            50.1736
+          ],
+          [
+            36.55529,
+            50.163704
+          ],
+          [
+            36.560097,
+            50.151386
+          ],
+          [
+            36.561813,
+            50.134664
+          ],
+          [
+            36.5625,
+            50.106047
+          ],
+          [
+            36.56044,
+            50.09834
+          ],
+          [
+            36.556664,
+            50.087327
+          ],
+          [
+            36.549797,
+            50.076532
+          ],
+          [
+            36.544991,
+            50.06926
+          ],
+          [
+            36.528854,
+            50.059784
+          ],
+          [
+            36.507912,
+            50.054935
+          ],
+          [
+            36.470833,
+            50.055155
+          ],
+          [
+            36.444397,
+            50.061988
+          ],
+          [
+            36.422768,
+            50.070803
+          ],
+          [
+            36.405258,
+            50.070362
+          ],
+          [
+            36.390152,
+            50.066175
+          ],
+          [
+            36.363716,
+            50.068599
+          ],
+          [
+            36.33316,
+            50.072786
+          ],
+          [
+            36.287498,
+            50.071244
+          ],
+          [
+            36.259003,
+            50.073227
+          ],
+          [
+            36.256256,
+            50.08182
+          ],
+          [
+            36.257973,
+            50.093715
+          ],
+          [
+            36.251793,
+            50.104946
+          ],
+          [
+            36.231537,
+            50.126301
+          ],
+          [
+            36.211967,
+            50.128942
+          ],
+          [
+            36.192741,
+            50.127842
+          ],
+          [
+            36.181755,
+            50.120578
+          ],
+          [
+            36.166649,
+            50.119257
+          ],
+          [
+            36.155663,
+            50.120358
+          ],
+          [
+            36.147423,
+            50.122559
+          ],
+          [
+            36.13266,
+            50.125201
+          ],
+          [
+            36.122704,
+            50.127622
+          ],
+          [
+            36.107254,
+            50.130043
+          ],
+          [
+            36.099358,
+            50.132023
+          ],
+          [
+            36.089401,
+            50.137965
+          ],
+          [
+            36.084251,
+            50.145446
+          ],
+          [
+            36.080132,
+            50.157326
+          ],
+          [
+            36.064339,
+            50.155786
+          ],
+          [
+            36.043739,
+            50.168542
+          ],
+          [
+            36.058846,
+            50.17294
+          ],
+          [
+            36.066141,
+            50.17874
+          ]
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "color": "#1c2202",
+        "fillColor": "#1c2202",
+        "fillOpacity": 0,
+        "weight": 3
+      },
+      "geometry": {
+        "type": "Polygon",
+        "coordinates": [
+          [
+            [
+              30.878448,
+              52.412053
+            ],
+            [
+              30.898361,
+              52.47358
+            ],
+            [
+              30.991058,
+              52.48738
+            ],
+            [
+              31.107101,
+              52.481944
+            ],
+            [
+              31.151047,
+              52.461867
+            ],
+            [
+              31.185379,
+              52.446385
+            ],
+            [
+              31.192245,
+              52.420429
+            ],
+            [
+              31.170273,
+              52.38943
+            ],
+            [
+              31.14624,
+              52.360925
+            ],
+            [
+              31.077576,
+              52.3345
+            ],
+            [
+              31.021957,
+              52.329884
+            ],
+            [
+              30.987625,
+              52.337017
+            ],
+            [
+              30.957413,
+              52.34373
+            ],
+            [
+              30.917587,
+              52.356732
+            ],
+            [
+              30.891495,
+              52.402419
+            ],
+            [
+              30.878448,
+              52.412053
+            ]
+          ]
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "markerType": "airfield"
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          31.077576,
+          52.361764
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "markerType": "airfield"
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          31.127014,
+          52.373503
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "markerType": "airfield"
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          30.905914,
+          52.419801
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "markerType": "airfield"
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          31.125298,
+          52.458938
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "markerType": "base"
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          30.983162,
+          52.425873
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "markerType": "base"
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          30.983849,
+          52.351489
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "markerType": "base"
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          31.107101,
+          52.428385
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "color": "#1c2202",
+        "fillColor": "#1c2202",
+        "fillOpacity": 0,
+        "weight": 3
+      },
+      "geometry": {
+        "type": "Polygon",
+        "coordinates": [
+          [
+            [
+              24.842834,
+              49.804314
+            ],
+            [
+              24.854507,
+              49.824695
+            ],
+            [
+              24.893646,
+              49.833554
+            ],
+            [
+              24.934158,
+              49.827796
+            ],
+            [
+              24.942398,
+              49.807416
+            ],
+            [
+              24.938278,
+              49.781264
+            ],
+            [
+              24.862747,
+              49.777717
+            ],
+            [
+              24.851074,
+              49.782594
+            ],
+            [
+              24.842834,
+              49.804314
+            ]
+          ]
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "markerType": "airfield"
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          24.855366,
+          49.795339
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "markerType": "airfield"
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          24.906864,
+          49.823034
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "markerType": "base"
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          24.895191,
+          49.807194
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "markerType": "base"
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          24.914417,
+          49.787582
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "markerType": "airfield"
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          36.320457,
+          50.099881
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "markerType": "airfield"
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          36.336594,
+          50.115735
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "markerType": "airfield"
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          36.374016,
+          50.239081
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "markerType": "airfield"
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          36.413841,
+          50.233591
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "markerType": "base"
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          36.240807,
+          50.185912
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "markerType": "base"
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          36.293507,
+          50.140386
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "markerType": "base"
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          36.248188,
+          50.148801
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "markerType": "base"
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          36.480789,
+          50.268386
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "markerType": "base"
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          36.193943,
+          50.327053
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "markerType": "base"
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          36.169395,
+          50.234469
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "markerType": "base"
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          36.148109,
+          50.206132
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "markerType": "airfield"
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          36.090775,
+          50.168432
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "markerType": "airfield"
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          35.882034,
+          50.280564
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "markerType": "airfield"
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          35.92083,
+          50.233152
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "markerType": "airfield"
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          35.889587,
+          50.171401
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "markerType": "airfield"
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          35.79689,
+          50.217337
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "markerType": "airfield"
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          36.059189,
+          50.290216
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "markerType": "airfield"
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          36.069489,
+          50.368898
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "markerType": "airfield"
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          36.005974,
+          50.42755
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "markerType": "airfield"
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          35.864182,
+          50.385757
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "markerType": "base"
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          35.841866,
+          50.314339
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "markerType": "base"
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          35.982285,
+          50.282539
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "markerType": "base"
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          35.977478,
+          50.267179
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "markerType": "base"
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          36.058846,
+          50.304034
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "markerType": "base"
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          35.939798,
+          50.201462
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "markerType": "base"
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          35.947008,
+          50.141596
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "markerType": "base"
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          35.838947,
+          50.153586
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "markerType": "base"
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          35.762558,
+          50.250059
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "markerType": "base"
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          35.817146,
+          50.312366
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "markerType": "base"
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          35.799122,
+          50.272775
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "markerType": "base"
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          35.90538,
+          50.362328
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "markerType": "base"
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          36.028633,
+          50.362547
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "markerType": "base"
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          36.059189,
+          50.387289
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "color": "#1eff00",
+        "fillColor": "#1eff00",
+        "fillOpacity": 0.1,
+        "weight": 3
+      },
+      "geometry": {
+        "type": "Polygon",
+        "coordinates": [
+          [
+            [
+              36.091976,
+              50.246793
+            ],
+            [
+              36.086912,
+              50.244927
+            ],
+            [
+              36.083651,
+              50.239959
+            ],
+            [
+              36.093006,
+              50.236226
+            ],
+            [
+              36.095753,
+              50.236226
+            ],
+            [
+              36.097169,
+              50.23554
+            ],
+            [
+              36.098585,
+              50.235046
+            ],
+            [
+              36.099787,
+              50.235348
+            ],
+            [
+              36.099958,
+              50.236062
+            ],
+            [
+              36.101375,
+              50.236556
+            ],
+            [
+              36.101804,
+              50.237214
+            ],
+            [
+              36.10219,
+              50.237599
+            ],
+            [
+              36.091976,
+              50.246793
+            ]
+          ]
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "markerType": "rocket"
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          36.158323,
+          50.210087
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "color": "#1eff00",
+        "fillColor": "#1eff00",
+        "fillOpacity": 0.1,
+        "weight": 3
+      },
+      "geometry": {
+        "type": "Polygon",
+        "coordinates": [
+          [
+            [
+              36.127682,
+              50.255821
+            ],
+            [
+              36.130772,
+              50.255547
+            ],
+            [
+              36.135964,
+              50.253626
+            ],
+            [
+              36.137037,
+              50.253023
+            ],
+            [
+              36.137466,
+              50.252144
+            ],
+            [
+              36.137853,
+              50.251321
+            ],
+            [
+              36.138496,
+              50.250114
+            ],
+            [
+              36.139011,
+              50.249345
+            ],
+            [
+              36.139526,
+              50.248303
+            ],
+            [
+              36.139784,
+              50.247342
+            ],
+            [
+              36.13678,
+              50.249592
+            ],
+            [
+              36.135149,
+              50.250141
+            ],
+            [
+              36.133604,
+              50.250498
+            ],
+            [
+              36.132402,
+              50.251568
+            ],
+            [
+              36.131716,
+              50.253105
+            ],
+            [
+              36.130857,
+              50.254093
+            ],
+            [
+              36.12781,
+              50.25316
+            ],
+            [
+              36.126008,
+              50.251952
+            ],
+            [
+              36.12442,
+              50.252199
+            ],
+            [
+              36.123519,
+              50.252721
+            ],
+            [
+              36.127682,
+              50.255821
+            ]
+          ]
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "color": "#ff0000",
+        "fillColor": "#ff0000",
+        "fillOpacity": 0.1,
+        "weight": 3
+      },
+      "geometry": {
+        "type": "Polygon",
+        "coordinates": [
+          [
+            [
+              36.17034,
+              50.298565
+            ],
+            [
+              36.165683,
+              50.296221
+            ],
+            [
+              36.164417,
+              50.295727
+            ],
+            [
+              36.163387,
+              50.295632
+            ],
+            [
+              36.162894,
+              50.295316
+            ],
+            [
+              36.163323,
+              50.295069
+            ],
+            [
+              36.164353,
+              50.295207
+            ],
+            [
+              36.165168,
+              50.295398
+            ],
+            [
+              36.165833,
+              50.295453
+            ],
+            [
+              36.166391,
+              50.295865
+            ],
+            [
+              36.167014,
+              50.29644
+            ],
+            [
+              36.16828,
+              50.297016
+            ],
+            [
+              36.170533,
+              50.298318
+            ],
+            [
+              36.17034,
+              50.298565
+            ]
+          ]
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "color": "#37ff00",
+        "fillColor": "#37ff00",
+        "fillOpacity": 0.1,
+        "weight": 3
+      },
+      "geometry": {
+        "type": "Polygon",
+        "coordinates": [
+          [
+            [
+              36.166584,
+              50.303143
+            ],
+            [
+              36.167314,
+              50.303033
+            ],
+            [
+              36.16799,
+              50.303143
+            ],
+            [
+              36.168526,
+              50.302923
+            ],
+            [
+              36.168988,
+              50.302732
+            ],
+            [
+              36.168762,
+              50.302382
+            ],
+            [
+              36.168226,
+              50.302451
+            ],
+            [
+              36.167496,
+              50.302348
+            ],
+            [
+              36.166778,
+              50.302403
+            ],
+            [
+              36.166466,
+              50.302505
+            ],
+            [
+              36.166584,
+              50.303143
+            ]
+          ]
+        ]
+      }
+    }
+  ]
+};
+        
         // Инициализация карты
-        function initMap() {
-            const role = localStorage.getItem('userRole') || 'user';
-            const username = localStorage.getItem('currentUser') || 'Гость';
-            console.log(`Инициализация карты для: ${username}, роль: ${role}`);
+        var southWest = L.latLng(44.0, 22.0);
+        var northEast = L.latLng(53.0, 40.5);
+        var bounds = L.latLngBounds(southWest, northEast);
 
-            // Индикатор роли в левом нижнем углу
-            const roleIndicator = document.createElement('div');
-            roleIndicator.className = 'role-indicator';
-            roleIndicator.innerHTML = `<strong>${username}</strong> (${role === 'admin' ? 'Администратор' : 'Пользователь'})`;
-            document.body.appendChild(roleIndicator);
+        var map = L.map('map', {
+            center: [48.3794, 31.1656],
+            zoom: 6,
+            minZoom: 5,
+            maxZoom: 18,
+            maxBounds: bounds,
+            maxBoundsViscosity: 1.0
+        });
 
-            // Кнопка выхода
-            const logoutBtn = document.createElement('button');
-            logoutBtn.className = 'logout-btn';
-            logoutBtn.textContent = 'Выйти';
-            logoutBtn.onclick = logout;
-            document.body.appendChild(logoutBtn);
+        L.tileLayer('https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}{r}.png', {
+            attribution: '&copy; <a href="https://carto.com/attributions">CartoDB</a> &copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors',
+            subdomains: 'abcd',
+            maxZoom: 20
+        }).addTo(map);
 
-            // Инициализация карты
-            var southWest = L.latLng(44.0, 22.0);
-            var northEast = L.latLng(53.0, 40.5);
-            var bounds = L.latLngBounds(southWest, northEast);
+        // Иконки для маркеров
+        const markerIcons = {
+            rocket: L.divIcon({
+                html: '🚀',
+                className: 'emoji-marker',
+                iconSize: [24, 24],
+                iconAnchor: [12, 24],
+                popupAnchor: [0, -24]
+            }),
+            airfield: L.divIcon({
+                html: '✈️',
+                className: 'emoji-marker',
+                iconSize: [24, 24],
+                iconAnchor: [12, 24],
+                popupAnchor: [0, -24]
+            }),
+            base: L.divIcon({
+                html: '⚔️',
+                className: 'emoji-marker',
+                iconSize: [24, 24],
+                iconAnchor: [12, 24],
+                popupAnchor: [0, -24]
+            })
+        };
 
-            var map = L.map('map', {
-                center: [48.3794, 31.1656],
-                zoom: 6,
-                minZoom: 5,
-                maxZoom: 18,
-                maxBounds: bounds,
-                maxBoundsViscosity: 1.0,
-                zoomAnimation: true,
-                zoomSnap: 1,
-                preferCanvas: true,
-                trackResize: true,
-                noWrap: true
+        // Загрузка данных на карту
+        L.geoJSON(mapData, {
+            style: function(feature) {
+                return {
+                    color: feature.properties.color || '#ff0000',
+                    fillColor: feature.properties.fillColor || '#ff0000',
+                    fillOpacity: feature.properties.fillOpacity || 0.5,
+                    weight: feature.properties.weight || 3
+                };
+            },
+            pointToLayer: function(feature, latlng) {
+                if (feature.geometry.type === 'Point') {
+                    var markerType = feature.properties.markerType || 'rocket';
+                    var marker = L.marker(latlng, {
+                        icon: markerIcons[markerType]
+                    });
+                    if (markerType === 'rocket') {
+                        marker.bindPopup('Загроза Оріщанки');
+                    } else if (markerType === 'airfield') {
+                        marker.bindPopup('Аэродром');
+                    } else if (markerType === 'base') {
+                        marker.bindPopup('Военная база');
+                    }
+                    return marker;
+                }
+            }
+        }).addTo(map);
+
+        // Функция для скрытия маркеров при маленьком масштабе
+        const MIN_ZOOM_FOR_MARKERS = 9;
+        function updateMarkerVisibility() {
+            const currentZoom = map.getZoom();
+            map.eachLayer(function(layer) {
+                if (layer instanceof L.Marker) {
+                    layer.setOpacity(currentZoom >= MIN_ZOOM_FOR_MARKERS ? 1 : 0);
+                }
             });
-
-            map.fitBounds(bounds);
-
-            var tileLayer = L.tileLayer('https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}{r}.png', {
-                attribution: '&copy; <a href="https://carto.com/attributions">CartoDB</a> &copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors',
-                subdomains: 'abcd',
-                maxZoom: 20,
-                minZoom: 0,
-                updateWhenIdle: true,
-                keepBuffer: 3,
-                detectRetina: true,
-                errorTileUrl: 'data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mP8/5+hHgAHggJ/PchI7wAAAABJRU5ErkJggg==',
-                noWrap: true
-            }).addTo(map);
-
-            map.on('tileloadstart', function(e) { console.log('Загрузка тайла:', e.coords); });
-            map.on('tileload', function(e) { console.log('Тайл загружен:', e.coords); });
-            map.on('tileerror', function(e) { console.error('Ошибка тайла:', e.coords, e.tile); });
-
-            var drawnItems = new L.FeatureGroup();
-            map.addLayer(drawnItems);
-
-            var currentColor = '#ff0000';
-            var currentOpacity = 0.5;
-            var currentMarkerType = 'rocket';
-
-            const markerIcons = {
-                rocket: L.divIcon({
-                    html: '🚀',
-                    className: 'emoji-marker',
-                    iconSize: [24, 24],
-                    iconAnchor: [12, 24],
-                    popupAnchor: [0, -24]
-                }),
-                airfield: L.divIcon({
-                    html: '✈️',
-                    className: 'emoji-marker',
-                    iconSize: [24, 24],
-                    iconAnchor: [12, 24],
-                    popupAnchor: [0, -24]
-                }),
-                base: L.divIcon({
-                    html: '⚔️',
-                    className: 'emoji-marker',
-                    iconSize: [24, 24],
-                    iconAnchor: [12, 24],
-                    popupAnchor: [0, -24]
-                })
-            };
-
-            // Инструменты рисования только для админа
-            if (isAdmin()) {
-                var drawControl = new L.Control.Draw({
-                    position: 'topleft',
-                    draw: {
-                        polyline: {
-                            shapeOptions: {
-                                color: currentColor,
-                                weight: 3
-                            }
-                        },
-                        polygon: {
-                            shapeOptions: {
-                                color: currentColor,
-                                fillColor: currentColor,
-                                fillOpacity: currentOpacity
-                            }
-                        },
-                        rectangle: false,
-                        circle: false,
-                        marker: false,
-                        circlemarker: false
-                    },
-                    edit: {
-                        featureGroup: drawnItems
-                    }
-                });
-                map.addControl(drawControl);
-
-                var MarkerTypeControl = L.Control.extend({
-                    options: {
-                        position: 'topleft'
-                    },
-                    onAdd: function(map) {
-                        var container = L.DomUtil.create('div', 'leaflet-draw-toolbar marker-type-control leaflet-bar');
-                        var types = [
-                            { name: 'Ракета', type: 'rocket', emoji: '🚀' },
-                            { name: 'Аэродром', type: 'airfield', emoji: '✈️' },
-                            { name: 'Военная база', type: 'base', emoji: '⚔️' }
-                        ];
-
-                        types.forEach(function(typeObj) {
-                            var button = L.DomUtil.create('a', 'marker-type-button', container);
-                            button.title = typeObj.name;
-                            button.innerHTML = typeObj.emoji;
-                            if (typeObj.type === currentMarkerType) {
-                                button.classList.add('active');
-                            }
-                            L.DomEvent.on(button, 'click', function(e) {
-                                L.DomEvent.stopPropagation(e);
-                                container.querySelectorAll('.marker-type-button').forEach(btn => btn.classList.remove('active'));
-                                button.classList.add('active');
-                                currentMarkerType = typeObj.type;
-                                new L.Draw.Marker(map, {
-                                    icon: markerIcons[typeObj.type]
-                                }).enable();
-                            });
-                        });
-
-                        return container;
-                    }
-                });
-
-                map.addControl(new MarkerTypeControl());
-
-                function addColorPicker() {
-                    var actionsContainer = document.querySelector('.leaflet-draw-actions');
-                    if (!actionsContainer || document.querySelector('.color-picker')) return;
-
-                    var pickerContainer = document.createElement('div');
-                    pickerContainer.className = 'color-picker';
-                    var colorInput = document.createElement('input');
-                    colorInput.type = 'color';
-                    colorInput.value = currentColor;
-                    colorInput.addEventListener('change', function(e) {
-                        currentColor = e.target.value;
-                        pickerContainer.style.backgroundColor = e.target.value;
-                        drawControl.setDrawingOptions({
-                            polyline: {
-                                shapeOptions: {
-                                    color: currentColor,
-                                    weight: 3
-                                }
-                            },
-                            polygon: {
-                                shapeOptions: {
-                                    color: currentColor,
-                                    fillColor: currentColor,
-                                    fillOpacity: currentOpacity
-                                }
-                            }
-                        });
-                    });
-                    pickerContainer.appendChild(colorInput);
-                    actionsContainer.parentNode.insertBefore(pickerContainer, actionsContainer.nextSibling);
-                }
-
-                function addOpacityControl() {
-                    if (document.querySelector('.opacity-control')) return;
-
-                    var opacityControl = document.createElement('div');
-                    opacityControl.className = 'opacity-control';
-                    var label = document.createElement('div');
-                    label.className = 'opacity-label';
-                    label.textContent = 'Opacity';
-                    var opacityInput = document.createElement('input');
-                    opacityInput.type = 'range';
-                    opacityInput.className = 'opacity-slider';
-                    opacityInput.min = '0';
-                    opacityInput.max = '1';
-                    opacityInput.step = '0.1';
-                    opacityInput.value = currentOpacity;
-                    opacityInput.addEventListener('input', function(e) {
-                        currentOpacity = parseFloat(e.target.value);
-                        drawControl.setDrawingOptions({
-                            polygon: {
-                                shapeOptions: {
-                                    color: currentColor,
-                                    fillColor: currentColor,
-                                    fillOpacity: currentOpacity
-                                }
-                            }
-                        });
-                    });
-                    opacityControl.appendChild(label);
-                    opacityControl.appendChild(opacityInput);
-                    document.getElementById('map').parentNode.appendChild(opacityControl);
-                }
-
-                setTimeout(function() {
-                    addColorPicker();
-                    addOpacityControl();
-                }, 100);
-                map.on('draw:drawstart', function() {
-                    setTimeout(addColorPicker, 100);
-                });
-            }
-
-            const MIN_ZOOM_FOR_MARKERS = 9;
-
-            function updateMarkerVisibility() {
-                const currentZoom = map.getZoom();
-                drawnItems.eachLayer(function(layer) {
-                    if (layer instanceof L.Marker) {
-                        layer.setOpacity(currentZoom >= MIN_ZOOM_FOR_MARKERS ? 1 : 0);
-                    }
-                });
-            }
-
-            map.on('zoomend', updateMarkerVisibility);
-
-            function saveLayers() {
-                var geoJson = drawnItems.toGeoJSON();
-                sessionStorage.setItem('sharedDrawnLayers', JSON.stringify(geoJson));
-            }
-
-            function loadLayers() {
-                var savedLayers = sessionStorage.getItem('sharedDrawnLayers');
-                if (savedLayers) {
-                    var geoJson = JSON.parse(savedLayers);
-                    L.geoJSON(geoJson, {
-                        style: function(feature) {
-                            return {
-                                color: feature.properties.color || currentColor,
-                                fillColor: feature.properties.fillColor || currentColor,
-                                fillOpacity: feature.properties.fillOpacity !== undefined ? feature.properties.fillOpacity : currentOpacity,
-                                weight: feature.properties.weight || 3
-                            };
-                        },
-                        pointToLayer: function(feature, latlng) {
-                            if (feature.geometry.type === 'Point') {
-                                var markerType = feature.properties.markerType || 'rocket';
-                                var marker = L.marker(latlng, {
-                                    icon: markerIcons[markerType]
-                                });
-                                if (markerType === 'rocket') {
-                                    marker.bindPopup('Загроза Оріщанки');
-                                } else if (markerType === 'airfield') {
-                                    marker.bindPopup('Аэродром');
-                                } else if (markerType === 'base') {
-                                    marker.bindPopup('Военная база');
-                                }
-                                return marker;
-                            }
-                        },
-                        onEachFeature: function(feature, layer) {
-                            layer.feature = layer.feature || { type: 'Feature', properties: {} };
-                            layer.feature.properties = {
-                                color: feature.properties.color || currentColor,
-                                fillColor: feature.properties.fillColor || currentColor,
-                                fillOpacity: feature.properties.fillOpacity !== undefined ? feature.properties.fillOpacity : currentOpacity,
-                                weight: feature.properties.weight || 3,
-                                markerType: feature.properties.markerType || 'rocket'
-                            };
-                            if (layer instanceof L.Polygon) {
-                                layer.setStyle({
-                                    color: layer.feature.properties.color,
-                                    fillColor: layer.feature.properties.fillColor,
-                                    fillOpacity: layer.feature.properties.fillOpacity
-                                });
-                            } else if (layer instanceof L.Polyline) {
-                                layer.setStyle({
-                                    color: layer.feature.properties.color,
-                                    weight: layer.feature.properties.weight
-                                });
-                            } else if (layer instanceof L.Marker) {
-                                layer.setIcon(markerIcons[layer.feature.properties.markerType]);
-                                if (layer.feature.properties.markerType === 'rocket') {
-                                    layer.bindPopup('Загроза Оріщанки');
-                                } else if (layer.feature.properties.markerType === 'airfield') {
-                                    layer.bindPopup('Аэродром');
-                                } else if (layer.feature.properties.markerType === 'base') {
-                                    layer.bindPopup('Военная база');
-                                }
-                            }
-                            drawnItems.addLayer(layer);
-                        }
-                    });
-                    updateMarkerVisibility();
-                }
-            }
-
-            var selectedLayer = null;
-
-            if (isAdmin()) {
-                map.on(L.Draw.Event.CREATED, function (event) {
-                    var layer = event.layer;
-                    layer.feature = layer.feature || { type: 'Feature', properties: {} };
-                    if (layer instanceof L.Polygon) {
-                        layer.setStyle({
-                            color: currentColor,
-                            fillColor: currentColor,
-                            fillOpacity: currentOpacity
-                        });
-                        layer.feature.properties = {
-                            color: currentColor,
-                            fillColor: currentColor,
-                            fillOpacity: currentOpacity,
-                            weight: 3
-                        };
-                    } else if (layer instanceof L.Polyline) {
-                        layer.setStyle({
-                            color: currentColor,
-                            weight: 3
-                        });
-                        layer.feature.properties = {
-                            color: currentColor,
-                            weight: 3
-                        };
-                    } else if (layer instanceof L.Marker) {
-                        layer.feature.properties = {
-                            markerType: currentMarkerType
-                        };
-                        if (currentMarkerType === 'rocket') {
-                            layer.bindPopup('Загроза Оріщанки');
-                        } else if (currentMarkerType === 'airfield') {
-                            layer.bindPopup('Аэродром');
-                        } else if (currentMarkerType === 'base') {
-                            layer.bindPopup('Военная база');
-                        }
-                        layer.setIcon(markerIcons[currentMarkerType]);
-                    }
-                    drawnItems.addLayer(layer);
-                    updateMarkerVisibility();
-                    saveLayers();
-                });
-
-                map.on(L.Draw.Event.DELETED, function () {
-                    saveLayers();
-                });
-
-                function createSettingsPopup(layer) {
-                    var popupContent = document.createElement('div');
-                    popupContent.className = 'settings-popup';
-
-                    var colorLabel = document.createElement('label');
-                    colorLabel.textContent = 'Color';
-                    var colorInput = document.createElement('input');
-                    colorInput.type = 'color';
-                    colorInput.value = layer.options.fillColor || currentColor;
-
-                    var opacityLabel = document.createElement('label');
-                    opacityLabel.textContent = 'Opacity';
-                    var opacityInput = document.createElement('input');
-                    opacityInput.type = 'range';
-                    opacityInput.min = '0';
-                    opacityInput.max = '1';
-                    opacityInput.step = '0.1';
-                    opacityInput.value = layer.options.fillOpacity || currentOpacity;
-
-                    var applyButton = document.createElement('button');
-                    applyButton.textContent = 'Apply';
-                    applyButton.addEventListener('click', function() {
-                        layer.setStyle({
-                            color: colorInput.value,
-                            fillColor: colorInput.value,
-                            fillOpacity: parseFloat(opacityInput.value)
-                        });
-                        layer.feature.properties = {
-                            color: colorInput.value,
-                            fillColor: colorInput.value,
-                            fillOpacity: parseFloat(opacityInput.value),
-                            weight: 3
-                        };
-                        saveLayers();
-                        map.closePopup();
-                    });
-
-                    popupContent.appendChild(colorLabel);
-                    popupContent.appendChild(colorInput);
-                    popupContent.appendChild(opacityLabel);
-                    popupContent.appendChild(opacityInput);
-                    popupContent.appendChild(applyButton);
-
-                    var latlng = layer.getBounds().getCenter();
-                    layer.bindPopup(popupContent, { className: 'settings-popup' }).openPopup(latlng);
-                }
-
-                drawnItems.on('click', function (e) {
-                    if (selectedLayer) {
-                        if (selectedLayer instanceof L.Polygon || selectedLayer instanceof L.Polyline) {
-                            selectedLayer.setStyle({ weight: 3 });
-                        }
-                    }
-                    selectedLayer = e.layer;
-                    if (selectedLayer instanceof L.Polygon) {
-                        selectedLayer.setStyle({ weight: 5 });
-                        createSettingsPopup(selectedLayer);
-                    } else if (selectedLayer instanceof L.Polyline) {
-                        selectedLayer.setStyle({ weight: 5 });
-                        var layerColor = selectedLayer.options.color || selectedLayer.options.fillColor;
-                        currentColor = layerColor;
-                        var colorInput = document.querySelector('.color-picker input[type="color"]');
-                        if (colorInput) {
-                            colorInput.value = layerColor;
-                            colorInput.parentNode.style.backgroundColor = layerColor;
-                        }
-                        drawControl.setDrawingOptions({
-                            polyline: {
-                                shapeOptions: {
-                                    color: currentColor,
-                                    weight: 3
-                                }
-                            },
-                            polygon: {
-                                shapeOptions: {
-                                    color: currentColor,
-                                    fillColor: currentColor,
-                                    fillOpacity: currentOpacity
-                                }
-                            }
-                        });
-                    }
-                });
-
-                map.on('click', function () {
-                    if (selectedLayer && (selectedLayer instanceof L.Polygon || selectedLayer instanceof L.Polyline)) {
-                        selectedLayer.setStyle({ weight: 3 });
-                        selectedLayer = null;
-                    }
-                });
-
-                map.on(L.Draw.Event.EDITED, function (event) {
-                    var layers = event.layers;
-                    layers.eachLayer(function(layer) {
-                        if (layer instanceof L.Polygon) {
-                            layer.setStyle({
-                                color: currentColor,
-                                fillColor: currentColor,
-                                fillOpacity: currentOpacity
-                            });
-                            layer.feature.properties = {
-                                color: currentColor,
-                                fillColor: currentColor,
-                                fillOpacity: currentOpacity,
-                                weight: 3
-                            };
-                        } else if (layer instanceof L.Polyline) {
-                            layer.setStyle({
-                                color: currentColor,
-                                weight: 3
-                            });
-                            layer.feature.properties = {
-                                color: currentColor,
-                                weight: 3
-                            };
-                        }
-                        saveLayers();
-                    });
-                });
-            }
-
-            loadLayers();
         }
 
-        // Проверка авторизации при загрузке
-        document.addEventListener('DOMContentLoaded', function() {
-            if (localStorage.getItem('currentUser') && localStorage.getItem('userRole')) {
-                const adminStatus = JSON.parse(sessionStorage.getItem('adminStatus'));
-                if (localStorage.getItem('userRole') === 'admin' && adminStatus.isTaken && adminStatus.adminUsername !== localStorage.getItem('currentUser')) {
-                    alert('Роль администратора была занята другим пользователем. Вы вошли как обычный пользователь.');
-                    localStorage.setItem('userRole', 'user');
-                }
-                initMap();
-            } else {
-                loginModal.classList.remove('hidden');
-            }
-        });
+        map.on('zoomend', updateMarkerVisibility);
+        updateMarkerVisibility(); // Initial update
     </script>
 </body>
 </html>
