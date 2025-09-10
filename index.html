@@ -30,8 +30,8 @@
     {
       "type": "Feature",
       "properties": {
-        "color": "#ff0000",
-        "weight": 3
+        "color": "#1a1a1a",
+        "weight": 5
       },
       "geometry": {
         "type": "LineString",
@@ -1566,8 +1566,8 @@
     {
       "type": "Feature",
       "properties": {
-        "color": "#ff0000",
-        "fillColor": "#ff0000",
+        "color": "#00ff40",
+        "fillColor": "#00ff40",
         "fillOpacity": 0.1,
         "weight": 3
       },
@@ -1634,8 +1634,8 @@
     {
       "type": "Feature",
       "properties": {
-        "color": "#ff0000",
-        "fillColor": "#ff0000",
+        "color": "#00ff11",
+        "fillColor": "#00ff11",
         "fillOpacity": 0.1,
         "weight": 3
       },
@@ -1728,7 +1728,7 @@
       "properties": {
         "color": "#ff0000",
         "fillColor": "#ff0000",
-        "fillOpacity": 0.5,
+        "fillOpacity": 0.1,
         "weight": 3
       },
       "geometry": {
@@ -1826,8 +1826,8 @@
     {
       "type": "Feature",
       "properties": {
-        "color": "#ff0000",
-        "fillColor": "#ff0000",
+        "color": "#04ff00",
+        "fillColor": "#04ff00",
         "fillOpacity": 0.1,
         "weight": 3
       },
@@ -2299,10 +2299,14 @@
         // Загрузка данных на карту
         L.geoJSON(mapData, {
             style: function(feature) {
+                // Исправление: корректно обрабатываем нулевую прозрачность
+                const fillOpacity = feature.properties.fillOpacity !== undefined ? 
+                    feature.properties.fillOpacity : 0.5;
+                
                 return {
                     color: feature.properties.color || '#ff0000',
                     fillColor: feature.properties.fillColor || '#ff0000',
-                    fillOpacity: feature.properties.fillOpacity || 0.5,
+                    fillOpacity: fillOpacity,
                     weight: feature.properties.weight || 3
                 };
             },
